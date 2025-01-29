@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Reminder App</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Birthday Reminder App</h1>
+        <button id="settingsBtn" class="settings-btn">
+            <i class="fas fa-cog"></i>
+        </button>
+        <div id="status"></div>
+        
+        <!-- Move notification settings above tabs -->
+        <div class="notification-settings">
+            <div class="toggle-wrapper">
+                <label class="toggle">
+                    <input type="checkbox" id="enableNotifications">
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label" data-translate="birthdayNotifications">Birthday Notifications</span>
+            </div>
+            <div class="notification-status"></div>
+        </div>
+
+        <!-- Add tab buttons -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="add" data-translate="addContact">Add Contact</button>
+            <button class="tab-btn" data-tab="view" data-translate="viewContacts">View Contacts</button>
+            <button class="tab-btn" data-tab="calendar">Calendar</button>
+        </div>
+
+        <!-- Add Contact Form -->
+        <div class="tab-content active" id="add">
+            <form id="userForm">
+                <div class="form-group">
+                    <label for="name" data-translate="fullName">Full Name:</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="email" data-translate="email">Email:</label>
+                    <input type="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone" data-translate="phone">Phone Number:</label>
+                    <input type="tel" id="phone" pattern="[0-9]{10}" placeholder="1234567890">
+                </div>
+                <div class="form-group">
+                    <label for="dob" data-translate="dateOfBirth">Date of Birth:</label>
+                    <input type="date" id="dob" required>
+                </div>
+                <div class="form-group">
+                    <label for="relationship" data-translate="relationship">Relationship:</label>
+                    <select id="relationship" required>
+                        <option value="" data-translate="selectRelationship">Select Relationship</option>
+                        <option value="family" data-translate="family">Family</option>
+                        <option value="friend" data-translate="friend">Friend</option>
+                        <option value="colleague" data-translate="colleague">Colleague</option>
+                        <option value="other" data-translate="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="notes" data-translate="notes">Notes/Gift Ideas:</label>
+                    <textarea id="notes" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label data-translate="emailNotifications">Email Notifications:</label>
+                    <div class="email-preferences">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="emailNotifications" checked>
+                            <span data-translate="sendReminders">Send email reminders for this contact's birthday</span>
+                        </label>
+                        <select id="reminderDays">
+                            <option value="7" data-translate="sevenDaysBefore">7 days before</option>
+                            <option value="3" data-translate="threeDaysBefore">3 days before</option>
+                            <option value="1" data-translate="oneDayBefore">1 day before</option>
+                            <option value="0" data-translate="onBirthday">On birthday</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit">Add Contact</button>
+            </form>
+        </div>
+
+        <!-- Contacts Dashboard -->
+        <div class="tab-content" id="view">
+            <div class="dashboard-controls">
+                <input type="text" id="searchContacts" data-translate-placeholder="searchContacts">
+                <select id="filterRelationship">
+                    <option value="" data-translate="allRelationships">All Relationships</option>
+                    <option value="family" data-translate="family">Family</option>
+                    <option value="friend" data-translate="friend">Friend</option>
+                    <option value="colleague" data-translate="colleague">Colleague</option>
+                    <option value="other" data-translate="other">Other</option>
+                </select>
+                <select id="sortBy">
+                    <option value="birthday" data-translate="sortByBirthday">Sort by Birthday</option>
+                    <option value="name" data-translate="sortByName">Sort by Name</option>
+                    <option value="date" data-translate="sortByDate">Sort by Date Added</option>
+                </select>
+                <button id="importBtn" class="btn-secondary" data-translate="importContacts">
+                    <i class="fas fa-upload"></i> <span data-translate="importContacts">Import Contacts</span>
+                </button>
+                <button id="exportBtn" class="btn-secondary" data-translate="exportContacts">
+                    <i class="fas fa-download"></i> <span data-translate="exportContacts">Export Contacts</span>
+                </button>
+            </div>
+            <div id="contactsList"></div>
+            <div class="pagination-controls">
+                <button id="prevPage" class="pagination-btn" disabled>Previous</button>
+                <span id="pageInfo">Page 1</span>
+                <button id="nextPage" class="pagination-btn">Next</button>
+            </div>
+        </div>
+
+        <!-- Calendar View -->
+        <div class="tab-content" id="calendar">
+            <div class="calendar-header">
+                <button class="nav-btn">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <h2 class="calendar-month">January 2025</h2>
+                <button class="nav-btn">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="calendar-container">
+                <div class="calendar-weekdays">
+                    <div>Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                </div>
+                <div class="calendar-grid" id="calendarDays"></div>
+            </div>
+        </div>
+
+    <!-- Delete Modal - Move this here -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Contact</h2>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this contact?</p>
+                <div class="modal-footer">
+                    <button id="confirmDelete" class="btn-danger">Delete</button>
+                    <button id="cancelDelete" class="btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Contact</h2>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <div class="form-group">
+                        <label for="editName">Full Name:</label>
+                        <input type="text" id="editName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEmail">Email:</label>
+                        <input type="email" id="editEmail" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editPhone">Phone Number:</label>
+                        <input type="tel" id="editPhone" pattern="[0-9]{10}" placeholder="1234567890">
+                    </div>
+                    <div class="form-group">
+                        <label for="editDob">Date of Birth:</label>
+                        <input type="date" id="editDob" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editRelationship">Relationship:</label>
+                        <select id="editRelationship" required>
+                            <option value="">Select Relationship</option>
+                            <option value="family">Family</option>
+                            <option value="friend">Friend</option>
+                            <option value="colleague">Colleague</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editNotes">Notes/Gift Ideas:</label>
+                        <textarea id="editNotes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="saveEdit" class="btn-primary">Save Changes</button>
+                <button id="cancelEdit" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add after delete modal -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Contact Details</h2>
+            </div>
+            <div class="modal-body">
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <label>Full Name:</label>
+                        <p id="detailName"></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Email:</label>
+                        <p id="detailEmail"></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Phone:</label>
+                        <p id="detailPhone"></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Birthday:</label>
+                        <p id="detailBirthday"></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Relationship:</label>
+                        <p id="detailRelationship"></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Notes:</label>
+                        <p id="detailNotes"></p>
+                    </div>
+                    <div class="detail-item">
+                        <label>Days until birthday:</label>
+                        <p id="detailDays"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeDetails" class="btn-secondary">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+            </div>
+            <div class="modal-body">
+                <!-- Settings Tabs -->
+                <div class="settings-tabs">
+                    <button class="settings-tab active" data-section="notifications">Notifications</button>
+                    <button class="settings-tab" data-section="display">Display</button>
+                    <button class="settings-tab" data-section="personalization">Personalization</button>
+                    <button class="settings-tab" data-section="backup">Backup/Restore</button>
+                </div>
+
+                <!-- Settings Sections -->
+                <div class="settings-section active" id="notifications">
+                    <div class="setting-item">
+                        <label for="reminderDays">Reminder Days</label>
+                        <select id="reminderDays">
+                            <option value="7">7 days before</option>
+                            <option value="3">3 days before</option>
+                            <option value="1">1 day before</option>
+                            <option value="0">On birthday</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="display">
+                    <div class="setting-item">
+                        <label for="themeSelect">Theme</label>
+                        <select id="themeSelect">
+                            <option value="orange">Baby Orange</option>
+                            <option value="pink">Baby Pink</option>
+                            <option value="dark">Dark</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Contacts per Page</label>
+                        <select id="contactsPerPage">
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="20">20</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="personalization">
+                    <div class="setting-item">
+                        <label>Date Format</label>
+                        <select id="dateFormat">
+                            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>Language</label>
+                        <select id="language">
+                            <option value="en">English</option>
+                            <option value="hi">Hindi</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="backup">
+                    <div class="setting-item">
+                        <h3>Backup Data</h3>
+                        <p class="setting-description">
+                            Download a backup of all your contacts and settings
+                        </p>
+                        <button id="backupBtn" class="btn-primary">
+                            <i class="fas fa-download"></i> Create Backup
+                        </button>
+                    </div>
+                    <div class="setting-item">
+                        <h3>Restore Data</h3>
+                        <p class="setting-description">
+                            Restore your contacts and settings from a backup file
+                        </p>
+                        <button id="restoreBtn" class="btn-primary">
+                            <i class="fas fa-upload"></i> Restore from Backup
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="saveSettings" class="btn-primary">Save Changes</button>
+                <button id="cancelSettings" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add after other modals -->
+    <div id="bulkDeleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Contacts</h2>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <span id="bulkDeleteCount"></span> contacts?</p>
+                <p class="warning-text">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmBulkDelete" class="btn-danger">Delete</button>
+                <button id="cancelBulkDelete" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+    
+    <!-- Application Code -->
+    <script src="config.js" type="module"></script>
+    <script src="app.js" type="module"></script>
+</body>
+</html> 
